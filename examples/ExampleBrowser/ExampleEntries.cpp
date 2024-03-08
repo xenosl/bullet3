@@ -16,6 +16,7 @@
 #include "../BasicDemo/BasicExample.h"
 #include "../Planar2D/Planar2D.h"
 #include "../Benchmarks/BenchmarkDemo.h"
+#include "../NoRigidBody/NoRigidBodyExampleEntry.h"
 #include "../Importers/ImportObjDemo/ImportObjExample.h"
 #include "../Importers/ImportBsp/ImportBspExample.h"
 #include "../Importers/ImportColladaDemo/ImportColladaSetup.h"
@@ -290,6 +291,7 @@ static ExampleEntry gDefaultExamples[] =
 		ExampleEntry(1, "Raycast", "Benchmark the performance of the btCollisionWorld::rayTest. Note that currently the rays are not rendered.", BenchmarkCreateFunc, 7),
 		ExampleEntry(1, "Convex Pack", "Benchmark the performance of the convex hull primitive.", BenchmarkCreateFunc, 8),
 		ExampleEntry(1, "Heightfield", "Raycast against a btHeightfieldTerrainShape", HeightfieldExampleCreateFunc),
+		ExampleEntry(1, "No RigidBody", "Collisions without any rigidbody.", NoRigidBodyExampleCreateFunc),
 		//#endif
 
 		ExampleEntry(0, "Importers"),

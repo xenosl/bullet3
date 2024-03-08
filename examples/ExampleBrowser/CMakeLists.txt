@@ -285,6 +285,9 @@ SET(BulletExampleBrowser_SRCS
 	../Benchmarks/BenchmarkDemo.h
 	../Benchmarks/landscapeData.h
 	../Benchmarks/TaruData
+	../NoRigidBody/NoRigidBodyExampleEntry.h
+	../NoRigidBody/NoRigidBodyExample.h
+	../NoRigidBody/NoRigidBodyExample.cpp
 	../Raycast/RaytestDemo.cpp
 		../Importers/ImportBsp/BspConverter.h
  	../Importers/ImportBullet/SerializeSetup.cpp
