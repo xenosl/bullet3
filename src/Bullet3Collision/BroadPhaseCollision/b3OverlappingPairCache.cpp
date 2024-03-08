@@ -21,11 +21,6 @@ subject to the following restrictions:
 
 #include <stdio.h>
 
-int b3g_overlappingPairs = 0;
-int b3g_removePairs = 0;
-int b3g_addedPairs = 0;
-int b3g_findPairs = 0;
-
 b3HashedOverlappingPairCache::b3HashedOverlappingPairCache() : m_overlapFilterCallback(0)
 //,	m_blockedForChanges(false)
 {
@@ -107,7 +102,6 @@ void b3HashedOverlappingPairCache::removeOverlappingPairsContainingProxy(int pro
 
 b3BroadphasePair* b3HashedOverlappingPairCache::findPair(int proxy0, int proxy1)
 {
-	b3g_findPairs++;
 	if (proxy0 > proxy1)
 		b3Swap(proxy0, proxy1);
 	int proxyId1 = proxy0;
@@ -236,7 +230,6 @@ b3BroadphasePair* b3HashedOverlappingPairCache::internalAddPair(int proxy0, int 
 
 void* b3HashedOverlappingPairCache::removeOverlappingPair(int proxy0, int proxy1, b3Dispatcher* dispatcher)
 {
-	b3g_removePairs++;
 	if (proxy0 > proxy1)
 		b3Swap(proxy0, proxy1);
 	int proxyId1 = proxy0;
@@ -344,8 +337,6 @@ void b3HashedOverlappingPairCache::processAllOverlappingPairs(b3OverlapCallback*
 		if (callback->processOverlap(*pair))
 		{
 			removeOverlappingPair(pair->x, pair->y, dispatcher);
-
-			b3g_overlappingPairs--;
 		}
 		else
 		{
@@ -391,7 +382,6 @@ void* b3SortedOverlappingPairCache::removeOverlappingPair(int proxy0, int proxy1
 		int findIndex = m_overlappingPairArray.findLinearSearch(findPair);
 		if (findIndex < m_overlappingPairArray.size())
 		{
-			b3g_overlappingPairs--;
 			b3BroadphasePair& pair = m_overlappingPairArray[findIndex];
 
 			cleanOverlappingPair(pair, dispatcher);
@@ -417,9 +407,6 @@ b3BroadphasePair* b3SortedOverlappingPairCache::addOverlappingPair(int proxy0, i
 
 	b3BroadphasePair* pair = &m_overlappingPairArray.expandNonInitializing();
 	*pair = b3MakeBroadphasePair(proxy0, proxy1);
-
-	b3g_overlappingPairs++;
-	b3g_addedPairs++;
 
 	//	if (m_ghostPairCallback)
 	//		m_ghostPairCallback->addOverlappingPair(proxy0, proxy1);
@@ -463,7 +450,6 @@ void b3SortedOverlappingPairCache::processAllOverlappingPairs(b3OverlapCallback*
 			pair->y = -1;
 			m_overlappingPairArray.swap(i, m_overlappingPairArray.size() - 1);
 			m_overlappingPairArray.pop_back();
-			b3g_overlappingPairs--;
 		}
 		else
 		{

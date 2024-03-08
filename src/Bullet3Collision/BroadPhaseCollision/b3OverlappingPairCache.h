@@ -42,10 +42,6 @@ struct b3OverlapFilterCallback
 	virtual bool needBroadphaseCollision(int proxy0, int proxy1) const = 0;
 };
 
-extern int b3g_removePairs;
-extern int b3g_addedPairs;
-extern int b3g_findPairs;
-
 const int B3_NULL_PAIR = 0xffffffff;
 
 ///The b3OverlappingPairCache provides an interface for overlapping pair management (add, remove, storage), used by the b3BroadphaseInterface broadphases.
@@ -114,8 +110,6 @@ public:
 	// no new pair is created and the old one is returned.
 	virtual b3BroadphasePair* addOverlappingPair(int proxy0, int proxy1)
 	{
-		b3g_addedPairs++;
-
 		if (!needsBroadphaseCollision(proxy0, proxy1))
 			return 0;
 
