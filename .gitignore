@@ -27,6 +27,7 @@ cmake_install.cmake
 CTestTestFile.cmake
 
 # Visual Studio build files
+.vs/
 *.vcxproj
 *.vcxproj.filters
 *.sln
@@ -37,6 +38,9 @@ CTestTestFile.cmake
 # vim temp files
 *.swp
 
+# VSCode
 .vscode/
+
+# CLion
 .idea/
-cmake-build-debug/
+cmake-build-*/
