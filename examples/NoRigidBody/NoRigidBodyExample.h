@@ -64,24 +64,27 @@ class NoRigidBodyExample : public CommonExampleInterface
 public:
 	explicit NoRigidBodyExample(const CommonExampleOptions& options);
 
+	void initPhysics() override;
+	void exitPhysics() override;
+
 private:
 	CommonExampleOptions m_options;
 
 	// Physics ---------------------------------------------------------------------------------------------------------
 public:
-	void initPhysics() override;
-	void exitPhysics() override;
+	void initWorld();
+	void exitWorld();
 	void stepSimulation(float deltaTime) override;
 
 private:
 	void createDynamicsWorld();
 
+	Entity* createEntity(double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis);
 	void createEntities();
 	void destroyEntities();
 
-	static bool onContactAdded(btManifoldPoint& cp,
-		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
-		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1);
+	static void onContactStarted(btPersistentManifold* const& manifold);
+	static void onContactEnded(btPersistentManifold* const& manifold);
 
 	std::vector<Entity*> m_entities;
 	std::vector<EntityMover*> m_entityMovers;
@@ -92,6 +95,14 @@ private:
 	btDefaultCollisionConfiguration* m_collisionConfiguration{};
 	btDiscreteDynamicsWorld* m_dynamicsWorld{};
 
+	// GUI -------------------------------------------------------------------------------------------------------------
+public:
+	[[nodiscard]] GUIHelperInterface* gui() const { return m_options.m_guiHelper; }
+
+private:
+	void initGui();
+	void exitGui();
+
 	// Rendering -------------------------------------------------------------------------------------------------------
 public:
 	void renderScene() override;
@@ -100,7 +111,9 @@ public:
 	void resetCamera() override;
 
 private:
-	[[nodiscard]] GUIHelperInterface* gui() const { return m_options.m_guiHelper; }
+	void initRendering();
+	void exitRendering();
+
 	[[nodiscard]] btIDebugDraw* debugDrawer() const;
 
 	// Input -----------------------------------------------------------------------------------------------------------

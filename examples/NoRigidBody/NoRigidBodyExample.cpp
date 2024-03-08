@@ -62,18 +62,29 @@ NoRigidBodyExample::NoRigidBodyExample(const CommonExampleOptions& options)
 
 void NoRigidBodyExample::initPhysics()
 {
-	createDynamicsWorld();
-	createEntities();
-
-	gContactAddedCallback = &NoRigidBodyExample::onContactAdded;
-
-	auto gui = this->gui();
-	gui->setUpAxis(1);
-	gui->createPhysicsDebugDrawer(m_dynamicsWorld);
-	gui->autogenerateGraphicsObjects(m_dynamicsWorld);
+	initWorld();
+	initGui();
+	initRendering();
 }
 
 void NoRigidBodyExample::exitPhysics()
+{
+	exitRendering();
+	exitGui();
+	exitWorld();
+}
+
+void NoRigidBodyExample::initWorld()
+{
+	createDynamicsWorld();
+	createEntities();
+
+	gContactStartedCallback = &NoRigidBodyExample::onContactStarted;
+	gContactEndedCallback = &NoRigidBodyExample::onContactEnded;
+	//gContactAddedCallback = &NoRigidBodyExample::onContactAdded;
+}
+
+void NoRigidBodyExample::exitWorld()
 {
 	destroyEntities();
 
@@ -142,20 +153,33 @@ void NoRigidBodyExample::createDynamicsWorld()
 		debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe + btIDebugDraw::DBG_DrawContactPoints);
 }
 
+Entity* NoRigidBodyExample::createEntity(double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis)
+{
+	auto entity = Entity::create<btSphereShape>(m_dynamicsWorld, size / 2.0);
+	//auto entity = Entity::create<btConeShapeX>(m_dynamicsWorld, 0.5, 1.0);
+	//auto entity = Entity::create<btBoxShape>(m_dynamicsWorld, btVector3{0.1, 0.1, 0.1});
+	m_entities.push_back(entity);
+	entity->setPosition(position);
+
+	auto mover = new EntityMover(entity);
+	m_entityMovers.push_back(mover);
+	mover->setLinearMoveAxis(linearMoveAxis);
+	mover->setAngularMoveAxis(angularMoveAxis);
+
+	return entity;
+}
+
 void NoRigidBodyExample::createEntities()
 {
-	for (int i = 0; i < 2; ++i)
-	{
-		auto entity = Entity::create<btSphereShape>(m_dynamicsWorld, 0.5);
-		//auto entity = Entity::create<btConeShapeX>(m_dynamicsWorld, 0.5, 1.0);
-		//auto entity = Entity::create<btBoxShape>(m_dynamicsWorld, btVector3{0.1, 0.1, 0.1});
-		m_entities.push_back(entity);
-		entity->setPosition({0, 0, i * 2.0});
+	static constexpr int EntityCountPerAxis = 100;
+	static constexpr double EntitySize = 0.5;
 
-		auto mover = new EntityMover(entity);
-		m_entityMovers.push_back(mover);
-		mover->setLinearMoveAxis(i % 2);
-		mover->setAngularMoveAxis(i % 2 + 1);
+	double gap = 1.0;
+	double startPosition = -EntityCountPerAxis * gap / 2.0;
+	for (int i = 0; i < EntityCountPerAxis; ++i)
+	{
+		createEntity(EntitySize, {0, 0, startPosition + i * gap}, 0, 1);
+		createEntity(EntitySize, {0, 0, startPosition + i * gap}, 1, 0);
 	}
 }
 
@@ -173,12 +197,33 @@ void NoRigidBodyExample::destroyEntities()
 	}
 }
 
-bool NoRigidBodyExample::onContactAdded(btManifoldPoint& cp,
-	const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
-	const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)
+void NoRigidBodyExample::onContactStarted(btPersistentManifold* const& manifold)
 {
-	b3Printf("onContactAdded(%p, %p)", colObj0Wrap, colObj1Wrap);
-	return true;
+	//b3Printf("onContactStarted(%p, %p)", manifold->getBody0(), manifold->getBody1());
+}
+
+void NoRigidBodyExample::onContactEnded(btPersistentManifold* const& manifold)
+{
+	//b3Printf("onContactEnded(%p, %p)", manifold->getBody0(), manifold->getBody1());
+}
+
+void NoRigidBodyExample::initGui()
+{
+	auto gui = this->gui();
+	gui->setUpAxis(1);
+	gui->createPhysicsDebugDrawer(m_dynamicsWorld);
+	gui->autogenerateGraphicsObjects(m_dynamicsWorld);
+
+	//	ButtonParams button("Show FPS", 0, true);
+	//	bool* ptr = &gDisplayProfileInfo;
+	//	button.m_initialState = *ptr;
+	//	button.m_userPointer = ptr;
+	//	button.m_callback = boolPtrButtonCallback;
+	//	m_guiHelper->getParameterInterface()->registerButtonParameter(button);
+}
+
+void NoRigidBodyExample::exitGui()
+{
 }
 
 void NoRigidBodyExample::renderScene()
@@ -202,11 +247,19 @@ void NoRigidBodyExample::physicsDebugDraw(int debugFlags)
 
 void NoRigidBodyExample::resetCamera()
 {
-	float dist = 10;
+	float dist = 25;
 	float pitch = -35;
 	float yaw = 52;
 	float targetPos[3] = {0, 0, 0};
 	this->gui()->resetCamera(dist, yaw, pitch, targetPos[0], targetPos[1], targetPos[2]);
+}
+
+void NoRigidBodyExample::initRendering()
+{
+}
+
+void NoRigidBodyExample::exitRendering()
+{
 }
 
 bool NoRigidBodyExample::mouseMoveCallback(float x, float y)
