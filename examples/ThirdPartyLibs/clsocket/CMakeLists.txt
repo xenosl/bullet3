@@ -65,10 +65,11 @@ endif()
 TARGET_LINK_LIBRARIES(clsocket ${PROJECT_LIBS})
 
 # install into configured prefix
-if(NOT CLSOCKET_DEP_ONLY)
-    install(TARGETS clsocket ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
-    install(FILES ${CLSOCKET_HEADERS} DESTINATION include)
-else()
+IF(INSTALL_EXAMPLES)
+    if(NOT CLSOCKET_DEP_ONLY)
+        install(TARGETS clsocket ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
+        install(FILES ${CLSOCKET_HEADERS} DESTINATION include)
+    else()
 
-endif()
-
+    endif()
+ENDIF()

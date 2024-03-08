@@ -481,6 +481,7 @@ IF(INSTALL_LIBS)
 	ENDIF(NOT MSVC)
 ENDIF()
 
+OPTION(INSTALL_EXAMPLES "Set when you want to install examples." OFF)
 
 OPTION(BUILD_UNIT_TESTS "Build Unit Tests"	ON)
 
