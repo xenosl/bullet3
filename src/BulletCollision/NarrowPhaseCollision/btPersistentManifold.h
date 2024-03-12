@@ -36,10 +36,10 @@ typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
 typedef bool (*ContactProcessedCallback)(btManifoldPoint& cp, void* body0, void* body1);
 typedef void (*ContactStartedCallback)(btPersistentManifold* const& manifold);
 typedef void (*ContactEndedCallback)(btPersistentManifold* const& manifold);
+
 extern ContactDestroyedCallback gContactDestroyedCallback;
 extern ContactProcessedCallback gContactProcessedCallback;
-extern ContactStartedCallback gContactStartedCallback;
-extern ContactEndedCallback gContactEndedCallback;
+
 #endif  //SWIG
 
 //the enum starts at 1024 to avoid type conflicts with btTypedConstraint
@@ -74,6 +74,9 @@ btPersistentManifold : public btTypedObject
 	btScalar m_contactBreakingThreshold;
 	btScalar m_contactProcessingThreshold;
 
+	ContactStartedCallback m_contactStartedCallback;
+	ContactEndedCallback m_contactEndedCallback;
+
 	/// sort cached points so most isolated points come first
 	int sortCachedPoints(const btManifoldPoint& pt);
 
@@ -89,7 +92,8 @@ public:
 
 	btPersistentManifold();
 
-	btPersistentManifold(const btCollisionObject* body0, const btCollisionObject* body1, int, btScalar contactBreakingThreshold, btScalar contactProcessingThreshold)
+	btPersistentManifold(const btCollisionObject* body0, const btCollisionObject* body1, int, btScalar contactBreakingThreshold, btScalar contactProcessingThreshold,
+		ContactStartedCallback contactStartedCallback, ContactEndedCallback contactEndedCallback)
 		: btTypedObject(BT_PERSISTENT_MANIFOLD_TYPE),
 		  m_body0(body0),
 		  m_body1(body1),
@@ -98,9 +102,14 @@ public:
 		  m_contactProcessingThreshold(contactProcessingThreshold),
 		  m_companionIdA(0),
 		  m_companionIdB(0),
-		  m_index1a(0)
+		  m_index1a(0),
+		  m_contactStartedCallback(contactStartedCallback),
+		  m_contactEndedCallback(contactEndedCallback)
 	{
 	}
+
+	ContactStartedCallback getContactStartedCallback() const { return m_contactStartedCallback; }
+	ContactEndedCallback getContactEndedCallback() const { return m_contactEndedCallback; }
 
 	SIMD_FORCE_INLINE const btCollisionObject* getBody0() const { return m_body0; }
 	SIMD_FORCE_INLINE const btCollisionObject* getBody1() const { return m_body1; }
@@ -183,9 +192,9 @@ public:
 		btAssert(m_pointCache[lastUsedIndex].m_userPersistentData == 0);
 		m_cachedPoints--;
 
-		if (gContactEndedCallback && m_cachedPoints == 0)
+		if (m_contactEndedCallback && m_cachedPoints == 0)
 		{
-			gContactEndedCallback(this);
+			m_contactEndedCallback(this);
 		}
 	}
 	void replaceContactPoint(const btManifoldPoint& newPoint, int insertIndex)
@@ -253,9 +262,9 @@ public:
 			clearUserCache(m_pointCache[i]);
 		}
 
-		if (gContactEndedCallback && m_cachedPoints)
+		if (m_contactEndedCallback && m_cachedPoints)
 		{
-			gContactEndedCallback(this);
+			m_contactEndedCallback(this);
 		}
 		m_cachedPoints = 0;
 	}

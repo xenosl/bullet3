@@ -79,8 +79,8 @@ void NoRigidBodyExample::initWorld()
 	createDynamicsWorld();
 	createEntities();
 
-	gContactStartedCallback = &NoRigidBodyExample::onContactStarted;
-	gContactEndedCallback = &NoRigidBodyExample::onContactEnded;
+	m_dispatcher->contactStartedCallback = &NoRigidBodyExample::onContactStarted;
+	m_dispatcher->contactEndedCallback = &NoRigidBodyExample::onContactEnded;
 	//gContactAddedCallback = &NoRigidBodyExample::onContactAdded;
 }
 

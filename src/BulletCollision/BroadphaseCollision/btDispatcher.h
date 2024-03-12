@@ -27,6 +27,9 @@ struct btCollisionObjectWrapper;
 class btPersistentManifold;
 class btPoolAllocator;
 
+typedef void (*ContactStartedCallback)(btPersistentManifold* const& manifold);
+typedef void (*ContactEndedCallback)(btPersistentManifold* const& manifold);
+
 struct btDispatcherInfo
 {
 	enum DispatchFunc
@@ -76,6 +79,9 @@ enum ebtDispatcherQueryType
 class btDispatcher
 {
 public:
+	ContactStartedCallback contactStartedCallback{};
+	ContactEndedCallback contactEndedCallback{};
+
 	virtual ~btDispatcher();
 
 	virtual btCollisionAlgorithm* findAlgorithm(const btCollisionObjectWrapper* body0Wrap, const btCollisionObjectWrapper* body1Wrap, btPersistentManifold* sharedManifold, ebtDispatcherQueryType queryType) = 0;
