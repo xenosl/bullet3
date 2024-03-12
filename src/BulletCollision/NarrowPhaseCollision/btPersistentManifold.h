@@ -100,11 +100,11 @@ public:
 		  m_cachedPoints(0),
 		  m_contactBreakingThreshold(contactBreakingThreshold),
 		  m_contactProcessingThreshold(contactProcessingThreshold),
+		  m_contactStartedCallback(contactStartedCallback),
+		  m_contactEndedCallback(contactEndedCallback),
 		  m_companionIdA(0),
 		  m_companionIdB(0),
-		  m_index1a(0),
-		  m_contactStartedCallback(contactStartedCallback),
-		  m_contactEndedCallback(contactEndedCallback)
+		  m_index1a(0)
 	{
 	}
 
