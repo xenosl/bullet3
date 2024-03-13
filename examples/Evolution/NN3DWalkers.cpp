@@ -103,6 +103,21 @@ void* GROUND_ID = (void*)1;
 
 class NN3DWalkersExample : public NN3DWalkersTimeWarpBase
 {
+	class ContactCallback : public btContactCallback
+	{
+	public:
+		explicit ContactCallback(NN3DWalkersExample* owner) : m_owner(owner) {}
+
+		void onContactProcessed(btManifoldPoint& cp, void* body0, void* body1) override;
+		void onContactDestroyed(void* userPersistentData) override {}
+
+		void onContactStarted(btPersistentManifold* const& manifold) override {}
+		void onContactEnded(btPersistentManifold* const& manifold) override {}
+
+	private:
+		NN3DWalkersExample* m_owner;
+	};
+
 	btScalar m_Time;
 	btScalar m_SpeedupTimestamp;
 	btScalar m_targetAccumulator;
@@ -283,9 +298,9 @@ public:
 		// legs
 		for (i = 0; i < NUM_LEGS; i++)
 		{
-			float footAngle = 2 * SIMD_PI * i / NUM_LEGS;  // legs are uniformly distributed around the root body
-			float footYUnitPosition = std::sin(footAngle); // y position of the leg on the unit circle
-			float footXUnitPosition = std::cos(footAngle); // x position of the leg on the unit circle
+			float footAngle = 2 * SIMD_PI * i / NUM_LEGS;   // legs are uniformly distributed around the root body
+			float footYUnitPosition = std::sin(footAngle);  // y position of the leg on the unit circle
+			float footXUnitPosition = std::cos(footAngle);  // x position of the leg on the unit circle
 
 			transform.setIdentity();
 			btVector3 legCOM = btVector3(btScalar(footXUnitPosition * (gRootBodyRadius + 0.5 * gLegLength)), btScalar(rootAboveGroundHeight), btScalar(footYUnitPosition * (gRootBodyRadius + 0.5 * gLegLength)));
@@ -537,39 +552,6 @@ public:
 
 void evaluationUpdatePreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 
-bool legContactProcessedCallback(btManifoldPoint& cp, void* body0, void* body1)
-{
-	btCollisionObject* o1 = static_cast<btCollisionObject*>(body0);
-	btCollisionObject* o2 = static_cast<btCollisionObject*>(body1);
-
-	void* ID1 = o1->getUserPointer();
-	void* ID2 = o2->getUserPointer();
-
-	if (ID1 != GROUND_ID || ID2 != GROUND_ID)
-	{
-		// Make a circle with a 0.9 radius at (0,0,0)
-		// with RGB color (1,0,0).
-		if (nn3DWalkers->m_dynamicsWorld->getDebugDrawer() != NULL)
-		{
-			if (!nn3DWalkers->mIsHeadless)
-			{
-				nn3DWalkers->m_dynamicsWorld->getDebugDrawer()->drawSphere(cp.getPositionWorldOnA(), 0.1, btVector3(1., 0., 0.));
-			}
-		}
-
-		if (ID1 != GROUND_ID && ID1)
-		{
-			((NNWalker*)ID1)->setTouchSensor(o1);
-		}
-
-		if (ID2 != GROUND_ID && ID2)
-		{
-			((NNWalker*)ID2)->setTouchSensor(o2);
-		}
-	}
-	return false;
-}
-
 struct WalkerFilterCallback : public btOverlapFilterCallback
 {
 	// return true when pairs need collision
@@ -592,8 +574,6 @@ struct WalkerFilterCallback : public btOverlapFilterCallback
 void NN3DWalkersExample::initPhysics()
 {
 	setupBasicParamInterface();  // parameter interface to use timewarp
-
-	gContactProcessedCallback = legContactProcessedCallback;
 
 	m_guiHelper->setUpAxis(1);
 
@@ -734,6 +714,8 @@ void NN3DWalkersExample::initPhysics()
 	{
 		m_timeSeriesCanvas->addDataSource(" ", 100 * i / NUM_WALKERS, 100 * (NUM_WALKERS - i) / NUM_WALKERS, 100 * (i) / NUM_WALKERS);
 	}
+
+	m_dynamicsWorld->getDispatcher()->contactCallback = new ContactCallback(this);
 }
 
 void NN3DWalkersExample::spawnWalker(int index, const btVector3& startOffset, bool bFixed)
@@ -810,7 +792,9 @@ bool NN3DWalkersExample::keyboardCallback(int key, int state)
 
 void NN3DWalkersExample::exitPhysics()
 {
-	gContactProcessedCallback = NULL;  // clear contact processed callback on exiting
+	auto dispatcher = m_dynamicsWorld->getDispatcher();
+	delete dispatcher->contactCallback;
+	dispatcher->contactCallback = nullptr;
 
 	int i;
 
@@ -1134,4 +1118,36 @@ void NN3DWalkersExample::printWalkerConfigs()
 	runner[0] = '\0';
 	b3Printf(configString);
 #endif
+}
+
+void NN3DWalkersExample::ContactCallback::onContactProcessed(btManifoldPoint& cp, void* body0, void* body1)
+{
+	btCollisionObject* o1 = static_cast<btCollisionObject*>(body0);
+	btCollisionObject* o2 = static_cast<btCollisionObject*>(body1);
+
+	void* ID1 = o1->getUserPointer();
+	void* ID2 = o2->getUserPointer();
+
+	if (ID1 != GROUND_ID || ID2 != GROUND_ID)
+	{
+		// Make a circle with a 0.9 radius at (0,0,0)
+		// with RGB color (1,0,0).
+		if (nn3DWalkers->m_dynamicsWorld->getDebugDrawer() != NULL)
+		{
+			if (!nn3DWalkers->mIsHeadless)
+			{
+				nn3DWalkers->m_dynamicsWorld->getDebugDrawer()->drawSphere(cp.getPositionWorldOnA(), 0.1, btVector3(1., 0., 0.));
+			}
+		}
+
+		if (ID1 != GROUND_ID && ID1)
+		{
+			((NNWalker*)ID1)->setTouchSensor(o1);
+		}
+
+		if (ID2 != GROUND_ID && ID2)
+		{
+			((NNWalker*)ID2)->setTouchSensor(o2);
+		}
+	}
 }

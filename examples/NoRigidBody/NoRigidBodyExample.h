@@ -77,14 +77,21 @@ public:
 	void stepSimulation(float deltaTime) override;
 
 private:
+	class ContactCallback : public btContactCallback
+	{
+	public:
+		void onContactProcessed(btManifoldPoint& cp, void* body0, void* body1) override;
+		void onContactDestroyed(void* userPersistentData) override;
+
+		void onContactStarted(btPersistentManifold* const& manifold) override;
+		void onContactEnded(btPersistentManifold* const& manifold) override;
+	};
+
 	void createDynamicsWorld();
 
 	Entity* createEntity(double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis);
 	void createEntities();
 	void destroyEntities();
-
-	static void onContactStarted(btPersistentManifold* const& manifold);
-	static void onContactEnded(btPersistentManifold* const& manifold);
 
 	std::vector<Entity*> m_entities;
 	std::vector<EntityMover*> m_entityMovers;
@@ -94,6 +101,8 @@ private:
 	btConstraintSolver* m_solver{};
 	btDefaultCollisionConfiguration* m_collisionConfiguration{};
 	btDiscreteDynamicsWorld* m_dynamicsWorld{};
+
+	ContactCallback* m_contactCallback{};
 
 	// GUI -------------------------------------------------------------------------------------------------------------
 public:

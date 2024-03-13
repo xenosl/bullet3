@@ -79,13 +79,17 @@ void NoRigidBodyExample::initWorld()
 	createDynamicsWorld();
 	createEntities();
 
-	m_dispatcher->contactStartedCallback = &NoRigidBodyExample::onContactStarted;
-	m_dispatcher->contactEndedCallback = &NoRigidBodyExample::onContactEnded;
+	m_contactCallback = new ContactCallback;
+	m_dispatcher->contactCallback = m_contactCallback;
 	//gContactAddedCallback = &NoRigidBodyExample::onContactAdded;
 }
 
 void NoRigidBodyExample::exitWorld()
 {
+	m_dispatcher->contactCallback = nullptr;
+	delete m_contactCallback;
+	m_contactCallback = nullptr;
+
 	destroyEntities();
 
 	if (m_dynamicsWorld)
@@ -129,6 +133,24 @@ void NoRigidBodyExample::stepSimulation(float deltaTime)
 
 	if (m_dynamicsWorld)
 		m_dynamicsWorld->stepSimulation(deltaTime);
+}
+
+void NoRigidBodyExample::ContactCallback::onContactProcessed(btManifoldPoint& cp, void* body0, void* body1)
+{
+}
+
+void NoRigidBodyExample::ContactCallback::onContactDestroyed(void* userPersistentData)
+{
+}
+
+void NoRigidBodyExample::ContactCallback::onContactStarted(btPersistentManifold* const& manifold)
+{
+	//b3Printf("onContactStarted(%p, %p)", manifold->getBody0(), manifold->getBody1());
+}
+
+void NoRigidBodyExample::ContactCallback::onContactEnded(btPersistentManifold* const& manifold)
+{
+	//b3Printf("onContactEnded(%p, %p)", manifold->getBody0(), manifold->getBody1());
 }
 
 void NoRigidBodyExample::createDynamicsWorld()
@@ -195,16 +217,6 @@ void NoRigidBodyExample::destroyEntities()
 		m_entities.erase(m_entities.begin() + i);
 		delete entity;
 	}
-}
-
-void NoRigidBodyExample::onContactStarted(btPersistentManifold* const& manifold)
-{
-	//b3Printf("onContactStarted(%p, %p)", manifold->getBody0(), manifold->getBody1());
-}
-
-void NoRigidBodyExample::onContactEnded(btPersistentManifold* const& manifold)
-{
-	//b3Printf("onContactEnded(%p, %p)", manifold->getBody0(), manifold->getBody1());
 }
 
 void NoRigidBodyExample::initGui()

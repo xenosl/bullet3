@@ -103,6 +103,7 @@ SET(BulletCollision_SRCS
 
 SET(Root_HDRS
 	../btBulletCollisionCommon.h
+	btContactCallbacks.h
 )
 SET(BroadphaseCollision_HDRS
     BroadphaseCollision/btAxisSweep3Internal.h

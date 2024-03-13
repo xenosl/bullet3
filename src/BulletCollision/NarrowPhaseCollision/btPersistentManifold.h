@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
+#include "BulletCollision/btContactCallbacks.h"
 #include "btManifoldPoint.h"
 class btCollisionObject;
 #include "LinearMath/btAlignedAllocator.h"
@@ -31,14 +32,6 @@ extern btScalar gContactBreakingThreshold;
 
 #ifndef SWIG
 class btPersistentManifold;
-
-typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
-typedef bool (*ContactProcessedCallback)(btManifoldPoint& cp, void* body0, void* body1);
-typedef void (*ContactStartedCallback)(btPersistentManifold* const& manifold);
-typedef void (*ContactEndedCallback)(btPersistentManifold* const& manifold);
-
-extern ContactDestroyedCallback gContactDestroyedCallback;
-extern ContactProcessedCallback gContactProcessedCallback;
 
 #endif  //SWIG
 
@@ -74,8 +67,7 @@ btPersistentManifold : public btTypedObject
 	btScalar m_contactBreakingThreshold;
 	btScalar m_contactProcessingThreshold;
 
-	ContactStartedCallback m_contactStartedCallback;
-	ContactEndedCallback m_contactEndedCallback;
+	btContactCallback* m_contactCallback;
 
 	/// sort cached points so most isolated points come first
 	int sortCachedPoints(const btManifoldPoint& pt);
@@ -92,24 +84,22 @@ public:
 
 	btPersistentManifold();
 
-	btPersistentManifold(const btCollisionObject* body0, const btCollisionObject* body1, int, btScalar contactBreakingThreshold, btScalar contactProcessingThreshold,
-		ContactStartedCallback contactStartedCallback, ContactEndedCallback contactEndedCallback)
+	btPersistentManifold(const btCollisionObject* body0, const btCollisionObject* body1,
+		int, btScalar contactBreakingThreshold, btScalar contactProcessingThreshold, btContactCallback* contactCallback)
 		: btTypedObject(BT_PERSISTENT_MANIFOLD_TYPE),
 		  m_body0(body0),
 		  m_body1(body1),
 		  m_cachedPoints(0),
 		  m_contactBreakingThreshold(contactBreakingThreshold),
 		  m_contactProcessingThreshold(contactProcessingThreshold),
-		  m_contactStartedCallback(contactStartedCallback),
-		  m_contactEndedCallback(contactEndedCallback),
+		  m_contactCallback(contactCallback),
 		  m_companionIdA(0),
 		  m_companionIdB(0),
 		  m_index1a(0)
 	{
 	}
 
-	ContactStartedCallback getContactStartedCallback() const { return m_contactStartedCallback; }
-	ContactEndedCallback getContactEndedCallback() const { return m_contactEndedCallback; }
+	btContactCallback* getContactCallback() const { return m_contactCallback; }
 
 	SIMD_FORCE_INLINE const btCollisionObject* getBody0() const { return m_body0; }
 	SIMD_FORCE_INLINE const btCollisionObject* getBody1() const { return m_body1; }
@@ -192,10 +182,8 @@ public:
 		btAssert(m_pointCache[lastUsedIndex].m_userPersistentData == 0);
 		m_cachedPoints--;
 
-		if (m_contactEndedCallback && m_cachedPoints == 0)
-		{
-			m_contactEndedCallback(this);
-		}
+		if (m_contactCallback && m_cachedPoints == 0)
+			m_contactCallback->onContactEnded(this);
 	}
 	void replaceContactPoint(const btManifoldPoint& newPoint, int insertIndex)
 	{
@@ -262,10 +250,9 @@ public:
 			clearUserCache(m_pointCache[i]);
 		}
 
-		if (m_contactEndedCallback && m_cachedPoints)
-		{
-			m_contactEndedCallback(this);
-		}
+		if (m_contactCallback && m_cachedPoints)
+			m_contactCallback->onContactEnded(this);
+
 		m_cachedPoints = 0;
 	}
 

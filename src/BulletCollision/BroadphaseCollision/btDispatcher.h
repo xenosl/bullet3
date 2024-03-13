@@ -16,6 +16,7 @@ subject to the following restrictions:
 #ifndef BT_DISPATCHER_H
 #define BT_DISPATCHER_H
 #include "LinearMath/btScalar.h"
+#include "BulletCollision/btContactCallbacks.h"
 
 class btCollisionAlgorithm;
 struct btBroadphaseProxy;
@@ -26,9 +27,6 @@ struct btCollisionObjectWrapper;
 
 class btPersistentManifold;
 class btPoolAllocator;
-
-typedef void (*ContactStartedCallback)(btPersistentManifold* const& manifold);
-typedef void (*ContactEndedCallback)(btPersistentManifold* const& manifold);
 
 struct btDispatcherInfo
 {
@@ -79,8 +77,7 @@ enum ebtDispatcherQueryType
 class btDispatcher
 {
 public:
-	ContactStartedCallback contactStartedCallback{};
-	ContactEndedCallback contactEndedCallback{};
+	btContactCallback* contactCallback{};
 
 	virtual ~btDispatcher();
 
