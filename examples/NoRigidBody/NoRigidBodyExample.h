@@ -37,16 +37,21 @@ private:
 	class ContactCallback : public btContactCallback
 	{
 	public:
+		explicit ContactCallback(NoRigidBodyExample* owner);
+
 		void onContactProcessed(btManifoldPoint& cp, void* body0, void* body1) override;
 		void onContactDestroyed(void* userPersistentData) override;
 
 		void onContactStarted(btPersistentManifold* const& manifold) override;
 		void onContactEnded(btPersistentManifold* const& manifold) override;
+
+	private:
+		NoRigidBodyExample* m_owner;
 	};
 
 	void createDynamicsWorld();
 
-	Entity* createEntityWithSinMover(double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis);
+	Entity* createEntityWithSinMover(std::string name, double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis);
 	void createEntitiesWithSinMover();
 
 	void destroyEntities();
@@ -61,6 +66,8 @@ private:
 	btDiscreteDynamicsWorld* m_dynamicsWorld{};
 
 	ContactCallback* m_contactCallback{};
+
+	int m_simulatedStepCount = 0;
 
 	// GUI -------------------------------------------------------------------------------------------------------------
 public:

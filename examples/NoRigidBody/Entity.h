@@ -18,10 +18,15 @@ public:
 
 	~Entity();
 
+	void setName(std::string name) { m_name = std::move(name); }
+	const std::string& getName() const { return m_name; }
+
 	void setPosition(const btVector3& position);
-	[[nodiscard]] const btVector3& getPosition() const;
+	const btVector3& getPosition() const;
 
 private:
+	std::string m_name;
+
 	btCollisionWorld* m_world{};
 	btCollisionObject* m_collisionObject{};
 	std::unique_ptr<btCollisionShape> m_shape;
@@ -32,3 +37,5 @@ Entity* Entity::create(btCollisionWorld* world, Args... shapeArgs)
 {
 	return new Entity(world, std::unique_ptr<btCollisionShape>(new Shape(std::forward<Args>(shapeArgs)...)));
 }
+
+Entity* entityOf(const btCollisionObject* obj);

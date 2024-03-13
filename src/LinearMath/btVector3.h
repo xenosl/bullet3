@@ -20,6 +20,8 @@ subject to the following restrictions:
 #include "btMinMax.h"
 #include "btAlignedAllocator.h"
 
+#include <sstream>
+
 #ifdef BT_USE_DOUBLE_PRECISION
 #define btVector3Data btVector3DoubleData
 #define btVector3DataName "btVector3DoubleData"
@@ -67,7 +69,7 @@ subject to the following restrictions:
 
 const float32x4_t ATTRIBUTE_ALIGNED16(btvMzeroMask) = (float32x4_t){-0.0f, -0.0f, -0.0f, -0.0f};
 const int32x4_t ATTRIBUTE_ALIGNED16(btvFFF0Mask) = (int32x4_t){static_cast<int32_t>(0xFFFFFFFF),
-															   static_cast<int32_t>(0xFFFFFFFF), static_cast<int32_t>(0xFFFFFFFF), 0x0};
+	static_cast<int32_t>(0xFFFFFFFF), static_cast<int32_t>(0xFFFFFFFF), 0x0};
 const int32x4_t ATTRIBUTE_ALIGNED16(btvAbsMask) = (int32x4_t){0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
 const int32x4_t ATTRIBUTE_ALIGNED16(btv3AbsMask) = (int32x4_t){0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x0};
 
@@ -95,7 +97,8 @@ public:
 public:
 #else                                            //__CELLOS_LV2__ __SPU__
 #if defined(BT_USE_SSE) || defined(BT_USE_NEON)  // _WIN32 || ARM
-	union {
+	union
+	{
 		btSimdFloat4 mVec128;
 		btScalar m_floats[4];
 	};
@@ -536,8 +539,8 @@ public:
 		return btVector3(vl);
 #else
 		return btVector3(m_floats[0] + (v.m_floats[0] - m_floats[0]) * t,
-						 m_floats[1] + (v.m_floats[1] - m_floats[1]) * t,
-						 m_floats[2] + (v.m_floats[2] - m_floats[2]) * t);
+			m_floats[1] + (v.m_floats[1] - m_floats[1]) * t,
+			m_floats[2] + (v.m_floats[2] - m_floats[2]) * t);
 #endif
 	}
 
@@ -746,6 +749,19 @@ public:
 #else
 		return btVector3(dot(v0), dot(v1), dot(v2));
 #endif
+	}
+
+	std::ostream& toString(std::ostream & s) const
+	{
+		s << '(' << x() << ',' << y() << ',' << z() << ',' << w() << ')';
+		return s;
+	}
+
+	std::string toString() const
+	{
+		std::stringstream ss;
+		toString(ss);
+		return ss.str();
 	}
 };
 
