@@ -1,59 +1,9 @@
 #include "NoRigidBodyExample.h"
 #include "NoRigidBodyExampleEntry.h"
+#include "Entity.h"
+#include "EntityMover.h"
 
 #include <cmath>
-
-Entity::Entity(btCollisionWorld* world, std::unique_ptr<btCollisionShape> shape)
-	: m_world(world), m_shape(std::move(shape))
-{
-	btAssert(m_world);
-	btAssert(m_shape);
-
-	m_collisionObject = new btCollisionObject;
-	m_collisionObject->setCollisionShape(m_shape.get());
-	m_collisionObject->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT);
-
-	m_world->addCollisionObject(m_collisionObject, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
-}
-
-Entity::~Entity()
-{
-	m_world->removeCollisionObject(m_collisionObject);
-
-	delete m_collisionObject;
-}
-
-EntityMover::EntityMover(Entity* entity)
-	: m_entity(entity)
-{
-}
-
-void EntityMover::stepSimulation(float deltaTime)
-{
-	m_moveTime += deltaTime;
-
-	auto position = m_entity->getPosition();
-
-	auto posAngular = std::sinf(m_moveTime * m_angularMoveSpeed);
-	position[m_angularMoveAxis] = posAngular;
-
-	auto moveDelta = m_linearMoveSpeed * deltaTime;
-	auto posLinear = position[m_linearMoveAxis] + moveDelta;
-	position[m_linearMoveAxis] = posLinear;
-
-	if (position[m_linearMoveAxis] > m_linearMoveRangeMax)
-	{
-		position[m_linearMoveAxis] = m_linearMoveRangeMax;
-		m_linearMoveSpeed = -m_linearMoveSpeed;
-	}
-	if (position[m_linearMoveAxis] < m_linearMoveRangeMin)
-	{
-		position[m_linearMoveAxis] = m_linearMoveRangeMin;
-		m_linearMoveSpeed = -m_linearMoveSpeed;
-	}
-
-	m_entity->setPosition(position);
-}
 
 NoRigidBodyExample::NoRigidBodyExample(const CommonExampleOptions& options)
 	: m_options(options)
@@ -77,7 +27,7 @@ void NoRigidBodyExample::exitPhysics()
 void NoRigidBodyExample::initWorld()
 {
 	createDynamicsWorld();
-	createEntities();
+	createEntitiesWithSinMover();
 
 	m_contactCallback = new ContactCallback;
 	m_dispatcher->contactCallback = m_contactCallback;
@@ -145,12 +95,12 @@ void NoRigidBodyExample::ContactCallback::onContactDestroyed(void* userPersisten
 
 void NoRigidBodyExample::ContactCallback::onContactStarted(btPersistentManifold* const& manifold)
 {
-	//b3Printf("onContactStarted(%p, %p)", manifold->getBody0(), manifold->getBody1());
+	b3Printf("onContactStarted(%p, %p)", manifold->getBody0(), manifold->getBody1());
 }
 
 void NoRigidBodyExample::ContactCallback::onContactEnded(btPersistentManifold* const& manifold)
 {
-	//b3Printf("onContactEnded(%p, %p)", manifold->getBody0(), manifold->getBody1());
+	b3Printf("onContactEnded(%p, %p)", manifold->getBody0(), manifold->getBody1());
 }
 
 void NoRigidBodyExample::createDynamicsWorld()
@@ -175,7 +125,7 @@ void NoRigidBodyExample::createDynamicsWorld()
 		debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe + btIDebugDraw::DBG_DrawContactPoints);
 }
 
-Entity* NoRigidBodyExample::createEntity(double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis)
+Entity* NoRigidBodyExample::createEntityWithSinMover(double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis)
 {
 	auto entity = Entity::create<btSphereShape>(m_dynamicsWorld, size / 2.0);
 	//auto entity = Entity::create<btConeShapeX>(m_dynamicsWorld, 0.5, 1.0);
@@ -183,15 +133,16 @@ Entity* NoRigidBodyExample::createEntity(double size, const btVector3& position,
 	m_entities.push_back(entity);
 	entity->setPosition(position);
 
-	auto mover = new EntityMover(entity);
+	auto mover = new EntitySinMover(entity);
 	m_entityMovers.push_back(mover);
 	mover->setLinearMoveAxis(linearMoveAxis);
 	mover->setAngularMoveAxis(angularMoveAxis);
+	//mover->setAngularMoveEnabled(false);
 
 	return entity;
 }
 
-void NoRigidBodyExample::createEntities()
+void NoRigidBodyExample::createEntitiesWithSinMover()
 {
 	static constexpr int EntityCountPerAxis = 100;
 	static constexpr double EntitySize = 0.5;
@@ -200,8 +151,8 @@ void NoRigidBodyExample::createEntities()
 	double startPosition = -EntityCountPerAxis * gap / 2.0;
 	for (int i = 0; i < EntityCountPerAxis; ++i)
 	{
-		createEntity(EntitySize, {0, 0, startPosition + i * gap}, 0, 1);
-		createEntity(EntitySize, {0, 0, startPosition + i * gap}, 1, 0);
+		createEntityWithSinMover(EntitySize, {0, 0, startPosition + i * gap}, 0, 1);
+		createEntityWithSinMover(EntitySize, {0, 0, startPosition + i * gap}, 1, 0);
 	}
 }
 

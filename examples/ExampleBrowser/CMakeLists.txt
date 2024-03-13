@@ -290,6 +290,10 @@ SET(BulletExampleBrowser_SRCS
 	../NoRigidBody/NoRigidBodyExampleEntry.h
 	../NoRigidBody/NoRigidBodyExample.h
 	../NoRigidBody/NoRigidBodyExample.cpp
+	../NoRigidBody/EntityMover.h
+	../NoRigidBody/EntityMover.cpp
+	../NoRigidBody/Entity.h
+	../NoRigidBody/Entity.cpp
 	../Raycast/RaytestDemo.cpp
 		../Importers/ImportBsp/BspConverter.h
  	../Importers/ImportBullet/SerializeSetup.cpp
