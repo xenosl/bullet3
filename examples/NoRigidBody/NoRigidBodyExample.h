@@ -51,7 +51,8 @@ private:
 
 	void createDynamicsWorld();
 
-	Entity* createEntityWithSinMover(std::string name, double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis);
+	std::pair<Entity*, EntityMover*> createEntityWithSinMover(
+		std::string name, double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis);
 	void createEntitiesWithSinMover();
 
 	void destroyEntities();

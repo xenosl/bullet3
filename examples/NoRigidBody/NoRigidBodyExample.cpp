@@ -31,16 +31,15 @@ void NoRigidBodyExample::initWorld()
 
 	m_contactCallback = new ContactCallback(this);
 	m_dispatcher->contactCallback = m_contactCallback;
-	//gContactAddedCallback = &NoRigidBodyExample::onContactAdded;
 }
 
 void NoRigidBodyExample::exitWorld()
 {
+	destroyEntities();
+
 	m_dispatcher->contactCallback = nullptr;
 	delete m_contactCallback;
 	m_contactCallback = nullptr;
-
-	destroyEntities();
 
 	if (m_dynamicsWorld)
 	{
@@ -100,16 +99,16 @@ void NoRigidBodyExample::ContactCallback::onContactDestroyed(void* userPersisten
 
 void NoRigidBodyExample::ContactCallback::onContactStarted(btPersistentManifold* const& manifold)
 {
-//	b3Printf("[%d] onContactStarted(%s, %s)", m_owner->m_simulatedStepCount,
-//		entityOf(manifold->getBody0())->getName().c_str(),
-//		entityOf(manifold->getBody1())->getName().c_str());
+	//	b3Printf("[%d] onContactStarted(%s, %s)", m_owner->m_simulatedStepCount,
+	//		entityOf(manifold->getBody0())->getName().c_str(),
+	//		entityOf(manifold->getBody1())->getName().c_str());
 }
 
 void NoRigidBodyExample::ContactCallback::onContactEnded(btPersistentManifold* const& manifold)
 {
-//	b3Printf("[%d] onContactEnded(%s, %s)", m_owner->m_simulatedStepCount,
-//		entityOf(manifold->getBody0())->getName().c_str(),
-//		entityOf(manifold->getBody1())->getName().c_str());
+	//	b3Printf("[%d] onContactEnded(%s, %s)", m_owner->m_simulatedStepCount,
+	//		entityOf(manifold->getBody0())->getName().c_str(),
+	//		entityOf(manifold->getBody1())->getName().c_str());
 }
 
 void NoRigidBodyExample::createDynamicsWorld()
@@ -134,7 +133,8 @@ void NoRigidBodyExample::createDynamicsWorld()
 		debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe + btIDebugDraw::DBG_DrawContactPoints);
 }
 
-Entity* NoRigidBodyExample::createEntityWithSinMover(std::string name, double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis)
+std::pair<Entity*, EntityMover*> NoRigidBodyExample::createEntityWithSinMover(
+	std::string name, double size, const btVector3& position, int linearMoveAxis, int angularMoveAxis)
 {
 	auto entity = Entity::create<btSphereShape>(m_dynamicsWorld, size / 2.0);
 	entity->setName(std::move(name));
@@ -149,15 +149,22 @@ Entity* NoRigidBodyExample::createEntityWithSinMover(std::string name, double si
 	mover->setAngularMoveAxis(angularMoveAxis);
 	mover->setAngularMoveEnabled(false);
 
-	return entity;
+	return {entity, mover};
 }
 
 void NoRigidBodyExample::createEntitiesWithSinMover()
 {
-	//	static constexpr double EntitySize = 5;
+	//static constexpr double EntitySize = 5;
+
+	//	auto p1 = createEntityWithSinMover("e1", 10, {0, 0, 0}, 0, 1);
+	//	auto m1 = (EntitySinMover*)p1.second;
+	//	m1->setAngularMoveEnabled(false);
+	//	m1->setLinearMoveEnabled(false);
 	//
-	//	createEntityWithSinMover("-", EntitySize, {-10, 0, 0}, 0, 1);
-	//	createEntityWithSinMover("+", EntitySize, {10, 0, 0}, 0, 1);
+	//	auto p2 = createEntityWithSinMover("e2", 5, {2, 0, 0}, 0, 1);
+	//	auto m2 = (EntitySinMover*)p2.second;
+	//	m2->setAngularMoveEnabled(false);
+	//	m2->setLinearMoveEnabled(false);
 
 	static constexpr int EntityCountPerAxis = 100;
 	static constexpr double EntitySize = 0.5;
