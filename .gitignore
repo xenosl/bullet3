@@ -28,6 +28,7 @@ CTestTestFile.cmake
 
 # Visual Studio build files
 .vs/
+out/
 *.vcxproj
 *.vcxproj.filters
 *.sln
